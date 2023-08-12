@@ -429,7 +429,7 @@ MonoBehaviour:
   RoomSize: {x: 20, y: 20}
   Seed: 0
   DecorationAssets: []
-  _Debug: 0
+  _Debug: 1
 --- !u!4 &732101498
 Transform:
   m_ObjectHideFlags: 0

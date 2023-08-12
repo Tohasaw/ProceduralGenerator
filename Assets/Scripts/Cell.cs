@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Cell {
+public class Cell : IDisposable {
     public Vector3 position;
     public CellTag zone;
     public CellSideTag side;
@@ -15,12 +16,11 @@ public class Cell {
         this.side = side;
     }
 
+    public void Dispose() {
+        Debug.Log("Deleted" + position);
+    }
+
     public override string ToString() {
         return position + " " + zone + " " + side;
     }
-
-    private void OnDestroy() {
-        Debug.Log("Deleted");
-    }
-
 }
