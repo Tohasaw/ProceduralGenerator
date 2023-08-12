@@ -1,7 +1,6 @@
-using System.Collections;
+
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class ProceduralRoom : MonoBehaviour {
     [SerializeField] private Mesh wallMesh;
@@ -23,7 +22,7 @@ public class ProceduralRoom : MonoBehaviour {
     [SerializeField] private Vector2 RoomSize;
     [SerializeField] private int Seed;
     [SerializeField] private List<DecorationAsset> DecorationAssets;
-    [SerializeField] private bool Debug;
+    [SerializeField] private bool _Debug;
 
     private Vector2 roomSize = new Vector2(20f, 20f);
     private Vector2 wallSize = new Vector2(4f, 1.5f);
@@ -57,7 +56,7 @@ public class ProceduralRoom : MonoBehaviour {
             //CreateDecorations();
         }
         if (DebugChanged()) {
-            debug = Debug;
+            debug = _Debug;
         }
         RenderWalls();
         RenderPillars();
@@ -140,6 +139,7 @@ public class ProceduralRoom : MonoBehaviour {
                 } else if (rand < 2) {
                     wallsBroken.Add(mat);
                 } else {
+
                     wallsDoor.Add(mat);
                 }
             }
@@ -234,7 +234,7 @@ public class ProceduralRoom : MonoBehaviour {
     }
 
     private bool DebugChanged() {
-        if (debug != Debug) {
+        if (debug != _Debug) {
             return true;
         }
         return false;
@@ -247,7 +247,7 @@ public class ProceduralRoom : MonoBehaviour {
             changed = true;
         }
         if (roomSize != RoomSize) {
-            if (RoomSize.x % wallSize.x == 0 && RoomSize.y % wallSize.y == 0) {
+            if (RoomSize.x % wallSize.x == 0 && RoomSize.y % wallSize.x == 0) {
                 roomSize = RoomSize;
                 changed = true;
             } 

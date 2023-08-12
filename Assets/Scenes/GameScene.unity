@@ -419,7 +419,7 @@ MonoBehaviour:
     type: 3}
   floorTile: {fileID: 1870228056666639022, guid: 33395839a66a74b4fba9dcfe7ea63f1a,
     type: 3}
-  cellMesh: {fileID: -2432090755550338912, guid: 16ee313223102d243a2293dc974a0a9e,
+  cellMesh: {fileID: -2432090755550338912, guid: 01a99198fdb10de4cbce915e3e27907b,
     type: 3}
   cellMaterialDefault: {fileID: 2100000, guid: 4ba18630884f8fb4f9db55eea7be2e5e, type: 2}
   cellMaterialNorth: {fileID: 2100000, guid: 1d419a573ca6c2a4fae1c5144ca406cf, type: 2}
@@ -429,7 +429,7 @@ MonoBehaviour:
   RoomSize: {x: 20, y: 20}
   Seed: 0
   DecorationAssets: []
-  Debug: 1
+  _Debug: 0
 --- !u!4 &732101498
 Transform:
   m_ObjectHideFlags: 0
