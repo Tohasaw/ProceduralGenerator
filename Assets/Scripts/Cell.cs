@@ -18,4 +18,6 @@ public class Cell {
     public override string ToString() {
         return position + " " + zone + " " + side;
     }
+
+
 }

@@ -417,7 +417,11 @@ MonoBehaviour:
   wallMaterial1: {fileID: 2100000, guid: 3839e05441b5f244eba20526c66e4783, type: 2}
   pillarMesh: {fileID: -8907757473011522176, guid: 1732775e94a424e41b216244adf2dbf1,
     type: 3}
-  floorTile: {fileID: 1870228056666639022, guid: 33395839a66a74b4fba9dcfe7ea63f1a,
+  floorTileMeshList:
+  - {fileID: 1870228056666639022, guid: 33395839a66a74b4fba9dcfe7ea63f1a, type: 3}
+  - {fileID: -3286623524688789990, guid: 0894b416136d6094c8badc2c300431ce, type: 3}
+  - {fileID: -8756325077530152429, guid: 65ecb3a85271f164ab6985c20374fc96, type: 3}
+  floorMaterial: {fileID: 1957042476528048658, guid: 33395839a66a74b4fba9dcfe7ea63f1a,
     type: 3}
   cellMesh: {fileID: -2432090755550338912, guid: 01a99198fdb10de4cbce915e3e27907b,
     type: 3}
@@ -428,7 +432,7 @@ MonoBehaviour:
   cellMaterialEast: {fileID: 2100000, guid: 8f30295fb6a4a8641a9e0435f7c71816, type: 2}
   RoomSize: {x: 20, y: 20}
   Seed: 0
-  DecorationAssets: []
+  DecorationAssetSOList: {fileID: 0}
   _Debug: 1
 --- !u!4 &732101498
 Transform:
@@ -488,7 +492,7 @@ Transform:
   m_GameObject: {fileID: 832575517}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.007, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

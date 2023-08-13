@@ -3,7 +3,20 @@ guid: 29b3ee1bb55106a4c9182c21c381c787
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - wallMesh: {instanceID: 0}
+  - wallMeshBroken: {instanceID: 0}
+  - wallMeshDoor: {instanceID: 0}
+  - wallMaterial0: {instanceID: 0}
+  - wallMaterial1: {instanceID: 0}
+  - pillarMesh: {instanceID: 0}
+  - floorTile: {instanceID: 0}
+  - cellMesh: {instanceID: 0}
+  - cellMaterialDefault: {instanceID: 0}
+  - cellMaterialNorth: {instanceID: 0}
+  - cellMaterialSouth: {instanceID: 0}
+  - cellMaterialWest: {instanceID: 0}
+  - cellMaterialEast: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

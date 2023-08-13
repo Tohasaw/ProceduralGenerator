@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DecorationAsset : ScriptableObject
-{
+[CreateAssetMenu()]
+public class DecorationAssetSO : ScriptableObject {
     public GameObject prefab;
     public Vector2 area;
     public CellTag zone;

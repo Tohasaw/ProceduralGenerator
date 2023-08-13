@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ProceduralRoom : MonoBehaviour {
     [SerializeField] private Mesh wallMesh;
@@ -10,7 +11,9 @@ public class ProceduralRoom : MonoBehaviour {
     [SerializeField] private Material wallMaterial1;
 
     [SerializeField] private Mesh pillarMesh;
-    [SerializeField] private Mesh floorTile;
+
+    [SerializeField] private List<Mesh> floorTileMeshList;
+    [SerializeField] private Material floorTileMaterial;
 
     [SerializeField] private Mesh cellMesh;
     [SerializeField] private Material cellMaterialDefault;
@@ -21,35 +24,37 @@ public class ProceduralRoom : MonoBehaviour {
 
     [SerializeField] private Vector2 RoomSize;
     [SerializeField] private int Seed;
-    [SerializeField] private List<DecorationAsset> DecorationAssets;
+    [SerializeField] private DecorationAssetSOList DecorationAssetSOList;
     [SerializeField] private bool _Debug;
 
     private Vector2 roomSize = new Vector2(20f, 20f);
     private Vector2 wallSize = new Vector2(4f, 1.5f);
     private Vector2 cellSize = new Vector2(1f, 1f);
+    private Vector2 floorTileSize = new Vector2(2f, 2f);
     private int seed = 11110;
     private bool debug = true;
+    private List<Cell> cells;
+
     private List<Matrix4x4> walls;
     private List<Matrix4x4> wallsBroken;
     private List<Matrix4x4> wallsDoor;
+
     private List<Matrix4x4> pillars;
-    private List<Cell> cells;
+
+    private List<Matrix4x4> floorTiles;
+    private List<Matrix4x4> floorTilesLeft;
+    private List<Matrix4x4> floorTilesRight;
+
     private List<Matrix4x4> cellsVisual;
     private List<Matrix4x4> cellsNorthVisual;
     private List<Matrix4x4> cellsSouthVisual;
     private List<Matrix4x4> cellsWestVisual;
     private List<Matrix4x4> cellsEastVisual;
 
-    private void Start() {
-        //CreateCells();
-        //CreateWalls();
-        //CreatePillars();
-        //CreateDecorations();
-    }
-
     private void Update() {
         if (ValuesChanged()) {
             CreateCells();
+            CreateFloor();
             CreateWalls();
             CreatePillars();
             //CreateDecorations();
@@ -57,9 +62,10 @@ public class ProceduralRoom : MonoBehaviour {
         if (DebugChanged()) {
             debug = _Debug;
         }
+        RenderCells();
+        RenderFloor();
         RenderWalls();
         RenderPillars();
-        RenderCells();
         //RenderDecorations();
     }
 
@@ -73,14 +79,14 @@ public class ProceduralRoom : MonoBehaviour {
         cellsWestVisual = new List<Matrix4x4>();
         cellsEastVisual = new List<Matrix4x4>();
 
-        int wallCountXx4 = Mathf.Max(1, (int)(roomSize.x / wallSize.x) * 4);
-        int wallCountYx4 = Mathf.Max(1, (int)(roomSize.y / wallSize.x) * 4);
+        int cellCountX = Mathf.Max(1, (int)(roomSize.x / cellSize.x));
+        int cellCountY = Mathf.Max(1, (int)(roomSize.y / cellSize.y));
 
-        for (int i = 0; i < wallCountXx4; i++) {
-            for (int j = 0; j < wallCountYx4; j++) {
+        for (int i = 0; i < cellCountX; i++) {
+            for (int j = 0; j < cellCountY; j++) {
                 var cellTag = CellTag.Inside;
                 var cellSideTag = CellSideTag.None;
-                var position = transform.position + new Vector3(-roomSize.x / 2 + cellSize.x * i + cellSize.y / 2, 0, roomSize.y / 2 + -cellSize.y * j - cellSize.y / 2);
+                var position = transform.position + new Vector3(-roomSize.x / 2 + cellSize.x * i + cellSize.y / 2, 0.15f, roomSize.y / 2 + -cellSize.y * j - cellSize.y / 2);
 
                 var r = transform.rotation;
                 var s = new Vector3(1, 1, 1);
@@ -91,23 +97,55 @@ public class ProceduralRoom : MonoBehaviour {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.West;
                     cellsWestVisual.Add(mat);
-                } else if (i == wallCountXx4 - 1) {
+                } else if (i == cellCountX - 1) {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.East;
                     cellsEastVisual.Add(mat);
-                } else if (j == 0 && i != 0 && i != wallCountXx4) {
+                } else if (j == 0 && i != 0 && i != cellCountX) {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.North;
                     cellsNorthVisual.Add(mat);
-                } else if (j == wallCountYx4 - 1 && i != 0 && i != wallCountXx4) {
+                } else if (j == cellCountY - 1 && i != 0 && i != cellCountX) {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.South;
                     cellsSouthVisual.Add(mat);
-                } else if (i != 0 && i != wallCountXx4) {
+                } else if (i != 0 && i != cellCountX) {
                     cellsVisual.Add(mat);
                 }
 
                 cells.Add(new Cell(position, cellTag, cellSideTag));
+            }
+        }
+    }
+
+    private void CreateFloor() {
+        floorTiles = new List<Matrix4x4>();
+        floorTilesLeft = new List<Matrix4x4>();
+        floorTilesRight = new List<Matrix4x4>();
+
+        int floorTilesCountX = Mathf.Max(1, (int)(roomSize.x / floorTileSize.x));
+        int floorTilesCountZ = Mathf.Max(1, (int)(roomSize.y / floorTileSize.y));
+
+        for (int i = 0; i < floorTilesCountX; i++) {
+            for (int j = 0; j < floorTilesCountZ; j++) {
+                var position = transform.position + new Vector3(-roomSize.x / 2 + floorTileSize.x * i + floorTileSize.y / 2, 0, roomSize.y / 2 + -floorTileSize.y * j - floorTileSize.y / 2);
+                var scale = new Vector3(1, 1, 1);
+
+                var randScale = Random.Range(0, 2);
+                if (randScale < 1) {
+                    scale = new Vector3(-1, 1, -1);
+                }
+
+                var mat = Matrix4x4.TRS(position, transform.rotation, scale);
+
+                var rand = Random.Range(0, 5);
+                if (rand < 1) {
+                    floorTilesLeft.Add(mat);
+                } else if (rand < 2) {
+                    floorTilesRight.Add(mat);
+                } else {
+                    floorTiles.Add(mat);
+                }
             }
         }
     }
@@ -175,6 +213,36 @@ public class ProceduralRoom : MonoBehaviour {
         }
     }
 
+    private void CreatePillars() {
+        pillars = new List<Matrix4x4>();
+
+        int wallCountX = Mathf.Max(1, (int)(roomSize.x / wallSize.x));
+        float wallCornerCorrection = wallSize.y / 2;
+        float XWallZPoint = roomSize.y / 2 + wallCornerCorrection;
+        float YWallXpoint = wallCountX * wallSize.x / 2 + wallCornerCorrection;
+
+        //Pillars
+        for (int i = -1; i < 2; i += 2) {
+            for (int j = -1; j < 2; j += 2) {
+                var t = transform.position + new Vector3(i * YWallXpoint, 0, j * XWallZPoint);
+                var r = transform.rotation;
+                var s = Vector3.one;
+
+                var mat = Matrix4x4.TRS(t, r, s);
+                pillars.Add(mat);
+            }
+        }
+    }
+
+    void CreateDecorations() {
+        if (cells != null) {
+
+            for (int i = 0; i < cells.Count; i++) {
+                //var cell = cells.availablePosition
+            }
+        }
+    }
+
     private void DeleteCellsWithVisualAtY(Vector3 t, int i) {
         for (int k = 0; k < 4; k++) {
             var cell = cells.FirstOrDefault(x => x.position == t + new Vector3(-i * 1.25f, 0, -1.5f + k));
@@ -222,42 +290,22 @@ public class ProceduralRoom : MonoBehaviour {
         }
     }
 
-    private void CreatePillars() {
-        pillars = new List<Matrix4x4>();
-
-        int wallCountX = Mathf.Max(1, (int)(roomSize.x / wallSize.x));
-        float wallCornerCorrection = wallSize.y / 2;
-        float XWallZPoint = roomSize.y / 2 + wallCornerCorrection;
-        float YWallXpoint = wallCountX * wallSize.x / 2 + wallCornerCorrection;
-
-        //Pillars
-        for (int i = -1; i < 2; i += 2) {
-            for (int j = -1; j < 2; j += 2) {
-                var t = transform.position + new Vector3(i * YWallXpoint, 0, j * XWallZPoint);
-                var r = transform.rotation;
-                var s = Vector3.one;
-
-                var mat = Matrix4x4.TRS(t, r, s);
-                pillars.Add(mat);
-            }
+    private void RenderCells() {
+        if (debug) {
+            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialDefault, cellsVisual.ToArray(), cellsVisual.Count);
+            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialNorth, cellsNorthVisual.ToArray(), cellsNorthVisual.Count);
+            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialSouth, cellsSouthVisual.ToArray(), cellsSouthVisual.Count);
+            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialWest, cellsWestVisual.ToArray(), cellsWestVisual.Count);
+            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialEast, cellsEastVisual.ToArray(), cellsEastVisual.Count);
         }
     }
 
-    void CreateDecorations() {
-        if (cells != null) {
-
-            for (int i = 0; i < cells.Count; i++) {
-                //var cell = cells.availablePosition
-            }
+    private void RenderFloor() {
+        if (floorTiles != null) {
+            Graphics.DrawMeshInstanced(floorTileMeshList[0], 0, floorTileMaterial, floorTiles.ToArray(), floorTiles.Count);
+            Graphics.DrawMeshInstanced(floorTileMeshList[1], 0, floorTileMaterial, floorTilesLeft.ToArray(), floorTilesLeft.Count);
+            Graphics.DrawMeshInstanced(floorTileMeshList[2], 0, floorTileMaterial, floorTilesRight.ToArray(), floorTilesRight.Count);
         }
-    }
-
-    void CreateWallDecorations() {
-
-    }
-
-    void CreateInsideDecorations() {
-
     }
 
     void RenderWalls() {
@@ -277,16 +325,6 @@ public class ProceduralRoom : MonoBehaviour {
     void RenderPillars() {
         Graphics.DrawMeshInstanced(pillarMesh, 0, wallMaterial0, pillars.ToArray(), pillars.Count);
         Graphics.DrawMeshInstanced(pillarMesh, 1, wallMaterial1, pillars.ToArray(), pillars.Count);
-    }
-
-    private void RenderCells() {
-        if (debug) {
-            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialDefault, cellsVisual.ToArray(), cellsVisual.Count);
-            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialNorth, cellsNorthVisual.ToArray(), cellsNorthVisual.Count);
-            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialSouth, cellsSouthVisual.ToArray(), cellsSouthVisual.Count);
-            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialWest, cellsWestVisual.ToArray(), cellsWestVisual.Count);
-            Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialEast, cellsEastVisual.ToArray(), cellsEastVisual.Count);
-        }
     }
 
     private void RenderDecorations() {
