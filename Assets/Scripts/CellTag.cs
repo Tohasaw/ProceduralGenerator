@@ -5,5 +5,6 @@ using UnityEngine;
 public enum CellTag
 {
     Inside,
-    Wall
+    Wall,
+    Anywhere
 }

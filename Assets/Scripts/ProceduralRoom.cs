@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class ProceduralRoom : MonoBehaviour {
+
     [SerializeField] private Mesh wallMesh;
     [SerializeField] private Mesh wallMeshBroken;
     [SerializeField] private Mesh wallMeshDoor;
@@ -24,16 +25,21 @@ public class ProceduralRoom : MonoBehaviour {
 
     [SerializeField] private Vector2 RoomSize;
     [SerializeField] private int Seed;
-    [SerializeField] private DecorationAssetSOList DecorationAssetSOList;
+    [SerializeField] private DecorationAssetSOList DecorationAssetsSOList;
     [SerializeField] private bool _Debug;
+    [SerializeField] private float CellWallChances;
+    [SerializeField] private float CellInsideChances;
 
-    private Vector2 roomSize = new Vector2(20f, 20f);
     private Vector2 wallSize = new Vector2(4f, 1.5f);
     private Vector2 cellSize = new Vector2(1f, 1f);
     private Vector2 floorTileSize = new Vector2(2f, 2f);
-    private int seed = 11110;
-    private bool debug = true;
+    private Vector2 roomSize;
+    private int seed;
+    private bool _debug;
+    private float cellWallChances;
+    private float cellInsideChances;
     private List<Cell> cells;
+    private List<Transform> decorations;
 
     private List<Matrix4x4> walls;
     private List<Matrix4x4> wallsBroken;
@@ -52,15 +58,16 @@ public class ProceduralRoom : MonoBehaviour {
     private List<Matrix4x4> cellsEastVisual;
 
     private void Update() {
-        if (ValuesChanged()) {
+        if (AnyChanges()) {
+            RemoveDecorations();
             CreateCells();
             CreateFloor();
             CreateWalls();
             CreatePillars();
-            //CreateDecorations();
+            CreateDecorations();
         }
         if (DebugChanged()) {
-            debug = _Debug;
+            _debug = _Debug;
         }
         RenderCells();
         RenderFloor();
@@ -85,7 +92,7 @@ public class ProceduralRoom : MonoBehaviour {
         for (int i = 0; i < cellCountX; i++) {
             for (int j = 0; j < cellCountY; j++) {
                 var cellTag = CellTag.Inside;
-                var cellSideTag = CellSideTag.None;
+                var cellSideTag = CellSideTag.North;
                 var position = transform.position + new Vector3(-roomSize.x / 2 + cellSize.x * i + cellSize.y / 2, 0.15f, roomSize.y / 2 + -cellSize.y * j - cellSize.y / 2);
 
                 var r = transform.rotation;
@@ -93,7 +100,7 @@ public class ProceduralRoom : MonoBehaviour {
 
                 var mat = Matrix4x4.TRS(position, r, s);
 
-                if (i == 0 ) {
+                if (i == 0) {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.West;
                     cellsWestVisual.Add(mat);
@@ -171,18 +178,18 @@ public class ProceduralRoom : MonoBehaviour {
                 var s = new Vector3(1, 1, 1);
 
                 var mat = Matrix4x4.TRS(t, r, s);
-                     
+
                 var rand = Random.Range(0, 3);
                 if (rand < 1) {
                     walls.Add(mat);
                 } else if (rand < 2) {
                     wallsBroken.Add(mat);
 
-                    DeleteCellsWithVisualAtX(t, i);
+                    RemoveCellsWithVisualAtX(t, i);
                 } else {
                     wallsDoor.Add(mat);
 
-                    DeleteCellsWithVisualAtX(t, i);
+                    RemoveCellsWithVisualAtX(t, i);
                 }
             }
         }
@@ -199,15 +206,15 @@ public class ProceduralRoom : MonoBehaviour {
 
                 var rand = Random.Range(0, 3);
                 if (rand < 1) {
-                    walls.Add   (mat);
+                    walls.Add(mat);
                 } else if (rand < 2) {
                     wallsBroken.Add(mat);
 
-                    DeleteCellsWithVisualAtY(t, i);
+                    RemoveCellsWithVisualAtY(t, i);
                 } else {
                     wallsDoor.Add(mat);
 
-                    DeleteCellsWithVisualAtY(t, i);
+                    RemoveCellsWithVisualAtY(t, i);
                 }
             }
         }
@@ -236,14 +243,75 @@ public class ProceduralRoom : MonoBehaviour {
 
     void CreateDecorations() {
         if (cells != null) {
+            decorations = new List<Transform>();
 
             for (int i = 0; i < cells.Count; i++) {
-                //var cell = cells.availablePosition
+                var cell = cells[i];
+                var zoneChances = ZoneChances(cell.zone);
+                var rand = Random.Range(0, 1f);
+
+                if (rand <= zoneChances) {
+                    var possibleElements = DecorationAssetsSOList.list.Where(x => x.zone == cell.zone).ToList(); 
+
+                    if (possibleElements.Any()) {
+                        var decoration = PickOneAsset(possibleElements);
+                        var position = cell.position;
+                        var rotation = GetRotation(cell.side);
+
+                        Transform DecorationObjectTransform = Instantiate(decoration.prefab.transform, position, rotation);
+
+                        decorations.Add(DecorationObjectTransform);
+                    }
+                }
             }
         }
     }
 
-    private void DeleteCellsWithVisualAtY(Vector3 t, int i) {
+    void RemoveDecorations() {
+        if (decorations != null) {
+            for (int i = 0; i < decorations.Count; i++) {
+                decorations[i].GetComponent<Decoration>().DestroySelf();
+            }
+        }
+        decorations = null;
+    }
+
+    float ZoneChances(CellTag zone) {
+        switch (zone) {
+            case CellTag.Wall:
+                return cellWallChances;
+            case CellTag.Inside:
+                return cellInsideChances;
+        }
+
+        return default;
+    }
+
+    private DecorationAssetSO PickOneAsset(List<DecorationAssetSO> possibleElements) {
+        var rand = Random.Range(0, possibleElements.Count);
+        var id = (int) Mathf.Floor(rand);
+
+        var decorationAssetSO = possibleElements[id];
+
+        return decorationAssetSO;
+
+    }
+
+    private Quaternion GetRotation(CellSideTag side) {
+        switch (side) {
+            case CellSideTag.North:
+                return Quaternion.Euler(0, 0, 0);
+            case CellSideTag.South:
+                return Quaternion.Euler(0, 180, 0);
+            case CellSideTag.West:
+                return Quaternion.Euler(0, -90, 0);
+            case CellSideTag.East:
+                return Quaternion.Euler(0, +90, 0);
+        }
+        return default;
+    }
+
+    private void RemoveCellsWithVisualAtY(Vector3 t, int i) {
         for (int k = 0; k < 4; k++) {
             var cell = cells.FirstOrDefault(x => x.position == t + new Vector3(-i * 1.25f, 0, -1.5f + k));
             cells.Remove(cell);
@@ -257,7 +325,7 @@ public class ProceduralRoom : MonoBehaviour {
         }
     }
 
-    private void DeleteCellsWithVisualAtX(Vector3 t, int i) {
+    private void RemoveCellsWithVisualAtX(Vector3 t, int i) {
         for (int k = 0; k < 4; k++) {
             var cell = cells.FirstOrDefault(x => x.position == t + new Vector3(-1.5f + k, 0, -i * 1.25f));
             cells.Remove(cell);
@@ -291,7 +359,7 @@ public class ProceduralRoom : MonoBehaviour {
     }
 
     private void RenderCells() {
-        if (debug) {
+        if (_debug) {
             Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialDefault, cellsVisual.ToArray(), cellsVisual.Count);
             Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialNorth, cellsNorthVisual.ToArray(), cellsNorthVisual.Count);
             Graphics.DrawMeshInstanced(cellMesh, 0, cellMaterialSouth, cellsSouthVisual.ToArray(), cellsSouthVisual.Count);
@@ -327,21 +395,19 @@ public class ProceduralRoom : MonoBehaviour {
         Graphics.DrawMeshInstanced(pillarMesh, 1, wallMaterial1, pillars.ToArray(), pillars.Count);
     }
 
-    private void RenderDecorations() {
-        throw new System.NotImplementedException();
-    }
-
     private bool DebugChanged() {
-        if (debug != _Debug) {
+        if (_debug != _Debug) {
             return true;
         }
         return false;
     }
 
-    private bool ValuesChanged() {
+    private bool AnyChanges() {
         bool changed = false;
-        if (seed != Seed) {
+        if (seed != Seed || cellInsideChances != CellInsideChances || cellWallChances != CellWallChances) {
             seed = Seed;
+            cellInsideChances = CellInsideChances;
+            cellWallChances = CellWallChances;
             changed = true;
         }
         if (roomSize != RoomSize) {

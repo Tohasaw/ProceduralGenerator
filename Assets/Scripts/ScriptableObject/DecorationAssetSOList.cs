@@ -4,5 +4,5 @@ using UnityEngine;
 
 [CreateAssetMenu()]
 public class DecorationAssetSOList : ScriptableObject {
-    public List<DecorationAssetSO> decorationAssetSOList;
+    public List<DecorationAssetSO> list;
 }

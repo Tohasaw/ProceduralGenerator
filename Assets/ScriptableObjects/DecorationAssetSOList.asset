@@ -12,4 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c27a0beb08907b42a7fa6f1227888e5, type: 3}
   m_Name: DecorationAssetSOList
   m_EditorClassIdentifier: 
-  decorationAssetSOList: []
+  list:
+  - {fileID: 11400000, guid: 06f9992dc1b71584c83bfbf1f7ac65d1, type: 2}
+  - {fileID: 11400000, guid: 26821f629b415264190e1025b271eeca, type: 2}
+  - {fileID: 11400000, guid: 3cdd84cb548987d46b91b93bd0301e22, type: 2}
+  - {fileID: 11400000, guid: 2a7d7ccc5200bee45b340fc289cf9e51, type: 2}
+  - {fileID: 11400000, guid: ebec34f742f8da24e8f230bea47acc78, type: 2}
+  - {fileID: 11400000, guid: 7064cbe9723969445b31b278bb8daf1d, type: 2}
+  - {fileID: 11400000, guid: bfae4de4a65f020439274da0413336ec, type: 2}
+  - {fileID: 11400000, guid: 4348c971e30927a4c91055f7997238df, type: 2}
+  - {fileID: 11400000, guid: ffd796488bb288d44849f97914e6829d, type: 2}
+  - {fileID: 11400000, guid: 779bcecb27b28de48a47350c214a719e, type: 2}
+  - {fileID: 11400000, guid: eb3470867107b2a42b720b7be7a41752, type: 2}
+  - {fileID: 11400000, guid: 68eee7f5b708a1b45b4f642afc6e1047, type: 2}
+  - {fileID: 11400000, guid: ea50b7ae338bff941ac8042dc61d6fa9, type: 2}
+  - {fileID: 11400000, guid: 45da1f877009c564b80bc7ef0290914c, type: 2}
+  - {fileID: 11400000, guid: 677985988c6c73240b6843b209322e5b, type: 2}
+  - {fileID: 11400000, guid: 0ef54eaa331535541942a4fac7612f8f, type: 2}
+  - {fileID: 11400000, guid: cf114379f46283e4580248a081c767fc, type: 2}
+  - {fileID: 11400000, guid: cceebb5b8bbec19469d3787895c1d50e, type: 2}
+  - {fileID: 11400000, guid: 2a6949bf033811e4c9df4c5f6deefa2d, type: 2}
+  - {fileID: 11400000, guid: 953befd9aeee89143b5d347c76c29a23, type: 2}
+  - {fileID: 11400000, guid: eec57aec808b8a14198f82585d0ea780, type: 2}
