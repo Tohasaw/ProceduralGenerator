@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a86fe3d65025f441b5e51a2dd0f9638, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  decorationAssetSO: {fileID: 0}
 --- !u!1001 &7812998270339986681
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66,7 +67,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 110dd9678c5117c41965e179d872f69c,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.75
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 110dd9678c5117c41965e179d872f69c,
         type: 3}

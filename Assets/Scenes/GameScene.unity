@@ -433,7 +433,7 @@ MonoBehaviour:
   Seed: 0
   DecorationAssetsSOList: {fileID: 11400000, guid: 714e5b97ec739fe42b6674d26044dd7d,
     type: 2}
-  _Debug: 0
+  _Debug: 1
   CellWallChances: 0.3
   CellInsideChances: 0.05
 --- !u!4 &732101498

@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ProceduralRoom : MonoBehaviour {
 
@@ -251,16 +253,106 @@ public class ProceduralRoom : MonoBehaviour {
                 var rand = Random.Range(0, 1f);
 
                 if (rand <= zoneChances) {
-                    var possibleElements = DecorationAssetsSOList.list.Where(x => x.zone == cell.zone).ToList(); 
+                    var possibleElements = DecorationAssetsSOList.list.Where(x => x.zone == cell.zone).ToList();
 
                     if (possibleElements.Any()) {
-                        var decoration = PickOneAsset(possibleElements);
-                        var position = cell.position;
-                        var rotation = GetRotation(cell.side);
+                        var assetSO = PickOneAssetSO(possibleElements);
+                        var pos = cell.position;
+                        var rot = GetRotation(cell.side);
 
-                        Transform DecorationObjectTransform = Instantiate(decoration.prefab.transform, position, rotation);
+                        if (IsInsideRoom(pos, rot, assetSO.area) && !IsOverLap(pos, rot, assetSO.area)) {
+                            RemoveArea(pos, assetSO.area);
 
-                        decorations.Add(DecorationObjectTransform);
+                            if (assetSO.area.x > 1 || assetSO.area.y > 1) {
+                                pos = pos + new Vector3(assetSO.area.x / 4, 0, assetSO.area.y / 4);
+                            }
+
+                            Transform DecorationObjectTransform = Instantiate(assetSO.prefab.transform, pos, rot);
+                            DecorationObjectTransform.GetComponent<Decoration>().decorationAssetSO = assetSO;
+                            decorations.Add(DecorationObjectTransform);
+
+                            Debug.Log(assetSO.ToString() + " at " + pos);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private bool IsInsideRoom(Vector3 pos, Quaternion rot, Vector2 area) {
+        bool a = false; bool b = false; bool c = false; bool d = false;
+        switch (rot.y) {
+            case 0:
+                a = -roomSize.x / 2 < pos.x - area.x / 2; // проверка не нужна, объект спавнится
+                b = roomSize.x / 2 > pos.x + area.x / 2;
+                c = -roomSize.y / 2 < pos.z - area.y / 2; 
+                d = roomSize.y / 2 > pos.z;
+                break;
+            case 180:
+                a = -roomSize.x / 2 < pos.x - area.x / 2;
+                b = roomSize.x / 2 > pos.x + area.x / 2;
+                c = -roomSize.y / 2 < pos.z;
+                d = roomSize.y / 2 > pos.z - area.y / 2;
+                break;
+            case -90:
+                a = -roomSize.x / 2 < pos.x - area.x / 2;
+                b = roomSize.x / 2 > pos.x + area.x / 2;
+                c = -roomSize.y / 2 < pos.z;
+                d = roomSize.y / 2 > pos.z - area.y / 2;
+                break;
+            case 90:
+                break;
+        }
+        if (a && b && c && d) {
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsOverLap(Vector3 pos, Quaternion rot, Vector2 area) {
+        return false;
+        foreach (Transform decoration in decorations) {
+            var areaD = decoration.GetComponent<Decoration>().decorationAssetSO.area;
+            var posD = decoration.position;
+
+            Debug.Log("new: " + area + " " + pos + "old: " + areaD + " " + posD);
+            //float[] xA = { pos.x, pos.x + area.x };
+            //float[] xB = { posD.x, posD.x + areaD.x };
+            //float[] yA = { pos.y, pos.y + area.y };
+            //float[] yB = { posD.y, posD.y + areaD.y };
+
+            //if (xA.Max() < xB.Min() || yA.Max() < yB.Min() || yA.Min() > yB.Max()) {
+            //    continue;
+            //} else if (xA.Max() > xB.Min() && xA.Min() < xB.Min()) {
+            //    return true;
+            //} else {
+            //    return true;
+            //}
+
+            var a = new Vector2(pos.x, pos.z);
+            var a1 = new Vector2(pos.x + area.x, pos.z + area.y);
+            var b = new Vector2(posD.x, posD.z);
+            var b1 = new Vector2(posD.x + areaD.x, posD.z + areaD.y);
+
+            if (a.y < b1.y || a1.y > b.y || a1.x < b.x || a.x > b1.x) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void RemoveArea(Vector3 pos, Vector2 area) {
+        for (float i = pos.x; i < pos.x + area.x; i++) {
+            for (float j = pos.z; j < pos.z + area.y; j++) {
+                var cell = cells.FirstOrDefault(x => x.position.x == i && x.position.z == j);
+
+                if (cell != null) {
+                    //Debug.Log("cell deleted at " + cell.position);
+                    cells.Remove(cell);
+                    var visual = cellsVisual.FirstOrDefault(x => x.GetColumn(3).x == i && x.GetColumn(3).z == j);
+                    if (visual != null) {
+                        //Debug.Log("visual deleted at " + visual.GetColumn(3));
+                        cellsVisual.Remove(visual);
                     }
                 }
             }
@@ -287,7 +379,7 @@ public class ProceduralRoom : MonoBehaviour {
         return default;
     }
 
-    private DecorationAssetSO PickOneAsset(List<DecorationAssetSO> possibleElements) {
+    private DecorationAssetSO PickOneAssetSO(List<DecorationAssetSO> possibleElements) {
         var rand = Random.Range(0, possibleElements.Count);
         var id = (int) Mathf.Floor(rand);
 
@@ -306,7 +398,7 @@ public class ProceduralRoom : MonoBehaviour {
             case CellSideTag.West:
                 return Quaternion.Euler(0, -90, 0);
             case CellSideTag.East:
-                return Quaternion.Euler(0, +90, 0);
+                return Quaternion.Euler(0, 90, 0);
         }
         return default;
     }
@@ -315,11 +407,14 @@ public class ProceduralRoom : MonoBehaviour {
         for (int k = 0; k < 4; k++) {
             var cell = cells.FirstOrDefault(x => x.position == t + new Vector3(-i * 1.25f, 0, -1.5f + k));
             cells.Remove(cell);
+            var r = transform.rotation;
+            var s = new Vector3(1, 1, 1);
+
             if (i == 1) {
-                var cellVisual = cellsEastVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.25f, 0, -1.5f + k), transform.rotation, new Vector3(1, 1, 1)));
+                var cellVisual = cellsEastVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.25f, 0, -1.5f + k), r, s));
                 cellsEastVisual.Remove(cellVisual);
             } else {
-                var cellVisual = cellsWestVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(1.25f, 0, -1.5f + k), transform.rotation, new Vector3(1, 1, 1)));
+                var cellVisual = cellsWestVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(1.25f, 0, -1.5f + k), r, s));
                 cellsWestVisual.Remove(cellVisual);
             }
         }
@@ -331,6 +426,7 @@ public class ProceduralRoom : MonoBehaviour {
             cells.Remove(cell);
             var r = transform.rotation;
             var s = new Vector3(1, 1, 1);
+
             if (i == 1) {
                 if (cellsWestVisual.Exists(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, -1.25f), r, s))) {
                     var cellVisual = cellsWestVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, -1.25f), r, s));
