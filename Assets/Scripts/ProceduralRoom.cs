@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 public class ProceduralRoom : MonoBehaviour {
 
@@ -34,6 +35,7 @@ public class ProceduralRoom : MonoBehaviour {
 
     private Vector2 wallSize = new Vector2(4f, 1.5f);
     private Vector2 cellSize = new Vector2(1f, 1f);
+    private float cellHeight = 0.15f;
     private Vector2 floorTileSize = new Vector2(2f, 2f);
     private Vector2 roomSize;
     private int seed;
@@ -94,32 +96,32 @@ public class ProceduralRoom : MonoBehaviour {
         for (int i = 0; i < cellCountX; i++) {
             for (int j = 0; j < cellCountY; j++) {
                 var cellTag = CellTag.Inside;
-                var cellSideTag = CellSideTag.North;
-                var position = transform.position + new Vector3(-roomSize.x / 2 + cellSize.x * i + cellSize.y / 2, 0.15f, roomSize.y / 2 + -cellSize.y * j - cellSize.y / 2);
+                var cellSideTag = CellSideTag.Center;
+                var position = transform.position + new Vector3(-roomSize.x / 2 + cellSize.x * i + cellSize.x / 2, 0, -roomSize.y / 2 + cellSize.y * j - cellSize.y / 2 + 1);
 
                 var r = transform.rotation;
                 var s = new Vector3(1, 1, 1);
 
                 var mat = Matrix4x4.TRS(position, r, s);
-
+                var matVisual = Matrix4x4.TRS(position + new Vector3(0, cellHeight, 0), r, s);
                 if (i == 0) {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.West;
-                    cellsWestVisual.Add(mat);
+                    cellsWestVisual.Add(matVisual);
                 } else if (i == cellCountX - 1) {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.East;
-                    cellsEastVisual.Add(mat);
-                } else if (j == 0 && i != 0 && i != cellCountX) {
-                    cellTag = CellTag.Wall;
-                    cellSideTag = CellSideTag.North;
-                    cellsNorthVisual.Add(mat);
-                } else if (j == cellCountY - 1 && i != 0 && i != cellCountX) {
+                    cellsEastVisual.Add(matVisual);
+                } else if (j == 0) {
                     cellTag = CellTag.Wall;
                     cellSideTag = CellSideTag.South;
-                    cellsSouthVisual.Add(mat);
-                } else if (i != 0 && i != cellCountX) {
-                    cellsVisual.Add(mat);
+                    cellsSouthVisual.Add(matVisual);
+                } else if (j == cellCountY - 1) {
+                    cellTag = CellTag.Wall;
+                    cellSideTag = CellSideTag.North;
+                    cellsNorthVisual.Add(matVisual);
+                } else {
+                    cellsVisual.Add(matVisual);
                 }
 
                 cells.Add(new Cell(position, cellTag, cellSideTag));
@@ -182,16 +184,25 @@ public class ProceduralRoom : MonoBehaviour {
                 var mat = Matrix4x4.TRS(t, r, s);
 
                 var rand = Random.Range(0, 3);
+                bool removeCells = false;
+
                 if (rand < 1) {
                     walls.Add(mat);
                 } else if (rand < 2) {
                     wallsBroken.Add(mat);
-
-                    RemoveCellsWithVisualAtX(t, i);
+                    removeCells = true;
                 } else {
                     wallsDoor.Add(mat);
+                    removeCells = true;
+                }
 
-                    RemoveCellsWithVisualAtX(t, i);
+                if (removeCells) {
+                    for (int k = 0; k < 4; k++) {
+                        var cellPos = t + new Vector3(-1.5f + k, 0, -i * 1.25f);
+                        var cell = cells.FirstOrDefault(x => x.position == cellPos);
+                        cells.Remove(cell);
+                        RemoveCellVisual(cellPos);
+                    }
                 }
             }
         }
@@ -207,18 +218,43 @@ public class ProceduralRoom : MonoBehaviour {
                 var mat = Matrix4x4.TRS(t, r, s);
 
                 var rand = Random.Range(0, 3);
+                bool removeCells = false;
+
                 if (rand < 1) {
                     walls.Add(mat);
                 } else if (rand < 2) {
                     wallsBroken.Add(mat);
-
-                    RemoveCellsWithVisualAtY(t, i);
+                    removeCells = true;
+                    Debug.Log("BrokenWall at " + t);
                 } else {
                     wallsDoor.Add(mat);
+                    removeCells = true;
+                    Debug.Log("Door at " + t);
+                }
 
-                    RemoveCellsWithVisualAtY(t, i);
+                if (removeCells) {
+                    for (int k = 0; k < 4; k++) {
+                        var cellPos = t + new Vector3(-i * 1.25f, 0, -1.5f + k);
+                        Debug.Log(cellPos);
+                        var cell = cells.FirstOrDefault(x => x.position == cellPos);
+                        var Bool = cells.Remove(cell);
+                        RemoveCellVisual(cellPos);
+                    }
                 }
             }
+        }
+    }
+
+    private void RemoveCellsWithVisualAtY(Vector3 t, int i) {
+
+    }
+
+    private void RemoveCellsWithVisualAtX(Vector3 t, int i) {
+        for (int k = 0; k < 4; k++) {
+            var cell = cells.FirstOrDefault(x => x.position == t + new Vector3(-1.5f + k, 0, -i * 1.25f));
+            cells.Remove(cell);
+            var r = transform.rotation;
+            var s = new Vector3(1, 1, 1);
         }
     }
 
@@ -264,7 +300,7 @@ public class ProceduralRoom : MonoBehaviour {
                             RemoveArea(pos, assetSO.area);
 
                             if (assetSO.area.x > 1 || assetSO.area.y > 1) {
-                                pos = pos + new Vector3(assetSO.area.x / 4, 0, assetSO.area.y / 4);
+                                pos = pos + new Vector3(assetSO.area.x * 0.5f - 0.5f, 0, assetSO.area.y * 0.5f - 0.5f);
                             }
 
                             Transform DecorationObjectTransform = Instantiate(assetSO.prefab.transform, pos, rot);
@@ -280,6 +316,7 @@ public class ProceduralRoom : MonoBehaviour {
     }
 
     private bool IsInsideRoom(Vector3 pos, Quaternion rot, Vector2 area) {
+        return true;
         bool a = false; bool b = false; bool c = false; bool d = false;
         switch (rot.y) {
             case 0:
@@ -294,13 +331,17 @@ public class ProceduralRoom : MonoBehaviour {
                 c = -roomSize.y / 2 < pos.z;
                 d = roomSize.y / 2 > pos.z - area.y / 2;
                 break;
-            case -90:
+            case -90: //west
+                a = -roomSize.x / 2 < pos.x;
+                b = roomSize.x / 2 > pos.x + area.x / 2;
+                c = -roomSize.y / 2 < pos.z + area.y / 2;
+                d = roomSize.y / 2 > pos.z - area.y / 2;
+                break;
+            case 90:
                 a = -roomSize.x / 2 < pos.x - area.x / 2;
                 b = roomSize.x / 2 > pos.x + area.x / 2;
                 c = -roomSize.y / 2 < pos.z;
                 d = roomSize.y / 2 > pos.z - area.y / 2;
-                break;
-            case 90:
                 break;
         }
         if (a && b && c && d) {
@@ -345,15 +386,9 @@ public class ProceduralRoom : MonoBehaviour {
         for (float i = pos.x; i < pos.x + area.x; i++) {
             for (float j = pos.z; j < pos.z + area.y; j++) {
                 var cell = cells.FirstOrDefault(x => x.position.x == i && x.position.z == j);
-
                 if (cell != null) {
-                    //Debug.Log("cell deleted at " + cell.position);
                     cells.Remove(cell);
-                    var visual = cellsVisual.FirstOrDefault(x => x.GetColumn(3).x == i && x.GetColumn(3).z == j);
-                    if (visual != null) {
-                        //Debug.Log("visual deleted at " + visual.GetColumn(3));
-                        cellsVisual.Remove(visual);
-                    }
+                    RemoveCellVisual(new Vector3(i, 0, j));
                 }
             }
         }
@@ -392,9 +427,9 @@ public class ProceduralRoom : MonoBehaviour {
     private Quaternion GetRotation(CellSideTag side) {
         switch (side) {
             case CellSideTag.North:
-                return Quaternion.Euler(0, 0, 0);
-            case CellSideTag.South:
                 return Quaternion.Euler(0, 180, 0);
+            case CellSideTag.South:
+                return Quaternion.Euler(0, 0, 0);
             case CellSideTag.West:
                 return Quaternion.Euler(0, -90, 0);
             case CellSideTag.East:
@@ -403,54 +438,30 @@ public class ProceduralRoom : MonoBehaviour {
         return default;
     }
 
-    private void RemoveCellsWithVisualAtY(Vector3 t, int i) {
-        for (int k = 0; k < 4; k++) {
-            var cell = cells.FirstOrDefault(x => x.position == t + new Vector3(-i * 1.25f, 0, -1.5f + k));
-            cells.Remove(cell);
-            var r = transform.rotation;
-            var s = new Vector3(1, 1, 1);
+    private void RemoveCellVisual(Vector3 position) {
+        var t = new Vector3(position.x, cellHeight, position.z);
+        var r = transform.rotation;
+        var s = new Vector3(1, 1, 1);
 
-            if (i == 1) {
-                var cellVisual = cellsEastVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.25f, 0, -1.5f + k), r, s));
-                cellsEastVisual.Remove(cellVisual);
-            } else {
-                var cellVisual = cellsWestVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(1.25f, 0, -1.5f + k), r, s));
-                cellsWestVisual.Remove(cellVisual);
-            }
+        if (cellsWestVisual.Exists(x => x == Matrix4x4.TRS(t, r, s))) {
+            var cellVisual = cellsWestVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t, r, s));
+            cellsWestVisual.Remove(cellVisual);
         }
-    }
-
-    private void RemoveCellsWithVisualAtX(Vector3 t, int i) {
-        for (int k = 0; k < 4; k++) {
-            var cell = cells.FirstOrDefault(x => x.position == t + new Vector3(-1.5f + k, 0, -i * 1.25f));
-            cells.Remove(cell);
-            var r = transform.rotation;
-            var s = new Vector3(1, 1, 1);
-
-            if (i == 1) {
-                if (cellsWestVisual.Exists(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, -1.25f), r, s))) {
-                    var cellVisual = cellsWestVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, -1.25f), r, s));
-                    cellsWestVisual.Remove(cellVisual);
-                } else if (cellsEastVisual.Exists(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, -1.25f), r, s))) {
-                    var cellVisual = cellsEastVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, -1.25f), r, s));
-                    cellsEastVisual.Remove(cellVisual);
-                } else {
-                    var cellVisual = cellsNorthVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, -1.25f), r, s));
-                    cellsNorthVisual.Remove(cellVisual);
-                }
-            } else {
-                if (cellsWestVisual.Exists(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, 1.25f), r, s))) {
-                    var cellVisual = cellsWestVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, 1.25f), r, s));
-                    cellsWestVisual.Remove(cellVisual);
-
-                } else if (cellsEastVisual.Exists(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, 1.25f), r, s))) {
-                    var cellVisual = cellsEastVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, 1.25f), r, s));
-                    cellsEastVisual.Remove(cellVisual);
-                } else {
-                    var cellVisual = cellsSouthVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t + new Vector3(-1.5f + k, 0, 1.25f), r, s));
-                    cellsSouthVisual.Remove(cellVisual);
-                }
-            }
+        if (cellsEastVisual.Exists(x => x == Matrix4x4.TRS(t, r, s))) {
+            var cellVisual = cellsEastVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t, r, s));
+            cellsEastVisual.Remove(cellVisual);
+        }
+        if (cellsSouthVisual.Exists(x => x == Matrix4x4.TRS(t, r, s))) {
+            var cellVisual = cellsSouthVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t, r, s));
+            cellsSouthVisual.Remove(cellVisual);
+        }
+        if (cellsNorthVisual.Exists(x => x == Matrix4x4.TRS(t, r, s))) {
+            var cellVisual = cellsNorthVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t, r, s));
+            cellsNorthVisual.Remove(cellVisual);
+        }
+        if (cellsVisual.Exists(x => x == Matrix4x4.TRS(t, r, s))) {
+            var cellVisual = cellsVisual.FirstOrDefault(x => x == Matrix4x4.TRS(t, r, s));
+            cellsVisual.Remove(cellVisual);
         }
     }
 

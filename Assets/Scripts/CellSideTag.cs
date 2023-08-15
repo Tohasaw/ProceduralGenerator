@@ -7,5 +7,6 @@ public enum CellSideTag
     North,
     South,
     West,
-    East
+    East,
+    Center
 }
