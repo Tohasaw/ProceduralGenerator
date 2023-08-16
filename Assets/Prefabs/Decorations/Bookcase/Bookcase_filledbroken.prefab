@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3539230811702956991}
   - component: {fileID: 6631114968327161964}
+  - component: {fileID: 1068911955829543411}
   m_Layer: 0
   m_Name: Bookcase_filledbroken
   m_TagString: Untagged
@@ -46,6 +47,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   decorationAssetSO: {fileID: 0}
+--- !u!65 &1068911955829543411
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1147722548866021899}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 2, z: 1}
+  m_Center: {x: 0, y: 1, z: -0.5}
 --- !u!1001 &1623651591928046875
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -67,12 +89,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 33e683bf091dc0e488722118271d2bf8,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.3
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 33e683bf091dc0e488722118271d2bf8,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 33e683bf091dc0e488722118271d2bf8,
         type: 3}
@@ -82,7 +104,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 33e683bf091dc0e488722118271d2bf8,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 33e683bf091dc0e488722118271d2bf8,
         type: 3}
@@ -97,7 +119,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 33e683bf091dc0e488722118271d2bf8,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 33e683bf091dc0e488722118271d2bf8,
         type: 3}
