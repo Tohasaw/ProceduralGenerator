@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5756413768775495164}
   - component: {fileID: -8294869608938785182}
+  - component: {fileID: -468524119584163783}
   m_Layer: 0
   m_Name: CrateLarge_small
   m_TagString: Untagged
@@ -45,6 +46,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a86fe3d65025f441b5e51a2dd0f9638, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  decorationAssetSO: {fileID: 0}
+--- !u!65 &-468524119584163783
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6314392819075122654}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 0.5, z: 2}
+  m_Center: {x: 0, y: 0.25, z: 0}
 --- !u!1001 &1790157818285948034
 PrefabInstance:
   m_ObjectHideFlags: 0

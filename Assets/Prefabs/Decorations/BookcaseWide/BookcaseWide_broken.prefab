@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9203922477514710112}
   - component: {fileID: -9052922681745993310}
+  - component: {fileID: -4518978920048199823}
   m_Layer: 0
   m_Name: BookcaseWide_broken
   m_TagString: Untagged
@@ -46,6 +47,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   decorationAssetSO: {fileID: 0}
+--- !u!65 &-4518978920048199823
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4537856216390254689}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 2, z: 0.5}
+  m_Center: {x: 0, y: 1, z: -0.5}
 --- !u!1001 &2598540594664202960
 PrefabInstance:
   m_ObjectHideFlags: 0

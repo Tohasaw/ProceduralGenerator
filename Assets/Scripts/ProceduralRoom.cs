@@ -291,19 +291,15 @@ public class ProceduralRoom : MonoBehaviour {
                         var pos = cell.position;
                         var rot = GetRotation(cell.side);
 
-                        if (IsInsideRoom(pos, rot, assetSO.area) && !IsOverLap(pos, rot, assetSO.area)) {
+                        var decPos = GetDecorationPos(pos, assetSO.area, rot);
+
+                        if (IsInsideRoom(pos, rot, assetSO.area) && !IsOverLap(decPos, rot, assetSO.area)) {
                             RemoveArea(pos, assetSO.area, rot);
 
-                            //if (assetSO.area.x > 1 || assetSO.area.y > 1) {
-                            //    pos = pos + new Vector3(assetSO.area.x * 0.5f - 0.5f, 0, assetSO.area.y * 0.5f - 0.5f);
-                            //}
-                            pos = GetDecorationPos(pos, assetSO.area, rot);
-
-                            Transform DecorationObjectTransform = Instantiate(assetSO.prefab.transform, pos, rot);
+                            Transform DecorationObjectTransform = Instantiate(assetSO.prefab.transform, decPos, rot);
                             DecorationObjectTransform.GetComponent<Decoration>().decorationAssetSO = assetSO;
                             decorations.Add(DecorationObjectTransform);
 
-                            Debug.Log(assetSO.ToString() + " at " + pos + " " + rot.eulerAngles.y);
                         }
                     }
                 }
@@ -313,12 +309,10 @@ public class ProceduralRoom : MonoBehaviour {
 
     private Vector3 GetDecorationPos(Vector3 pos, Vector2 area, Quaternion rot) {
 
-        float x = 0;
-        float y = 0;
-        float x1 = 0;
-        float y1 = 0;
-
         if (area.x > 1 || area.y > 1) {
+
+            float x, y;
+
             switch (rot.eulerAngles.y) {
                 case SOUTH_ANGLE:
                     x = 1; y = 1;
@@ -344,32 +338,19 @@ public class ProceduralRoom : MonoBehaviour {
     }
 
     private bool IsInsideRoom(Vector3 pos, Quaternion rot, Vector2 area) {
-        return true;
-        bool a = false; bool b = false; bool c = false; bool d = false;
+        bool a = true, b = true, c = true, d = true;
         switch (rot.y) {
-            case 0:
-                a = -roomSize.x / 2 < pos.x - area.x / 2; // проверка не нужна, объект спавнится
+            case SOUTH_ANGLE:
                 b = roomSize.x / 2 > pos.x + area.x / 2;
-                c = -roomSize.y / 2 < pos.z - area.y / 2; 
-                d = roomSize.y / 2 > pos.z;
                 break;
-            case 180:
+            case NORTH_ANGLE:
                 a = -roomSize.x / 2 < pos.x - area.x / 2;
-                b = roomSize.x / 2 > pos.x + area.x / 2;
-                c = -roomSize.y / 2 < pos.z;
-                d = roomSize.y / 2 > pos.z - area.y / 2;
                 break;
-            case -90: //west
-                a = -roomSize.x / 2 < pos.x;
-                b = roomSize.x / 2 > pos.x + area.x / 2;
-                c = -roomSize.y / 2 < pos.z + area.y / 2;
-                d = roomSize.y / 2 > pos.z - area.y / 2;
+            case WEST_ANGLE: 
+                d = roomSize.y / 2 > pos.z + area.y / 2;
                 break;
-            case 90:
-                a = -roomSize.x / 2 < pos.x - area.x / 2;
-                b = roomSize.x / 2 > pos.x + area.x / 2;
-                c = -roomSize.y / 2 < pos.z;
-                d = roomSize.y / 2 > pos.z - area.y / 2;
+            case EAST_ANGLE:
+                d = roomSize.y / 2 > pos.z + area.y / 2;
                 break;
         }
         if (a && b && c && d) {
@@ -379,35 +360,30 @@ public class ProceduralRoom : MonoBehaviour {
     }
 
     private bool IsOverLap(Vector3 pos, Quaternion rot, Vector2 area) {
-        return false;
         foreach (Transform decoration in decorations) {
             var areaD = decoration.GetComponent<Decoration>().decorationAssetSO.area;
             var posD = decoration.position;
 
-            Debug.Log("new: " + area + " " + pos + "old: " + areaD + " " + posD);
-            //float[] xA = { pos.x, pos.x + area.x };
-            //float[] xB = { posD.x, posD.x + areaD.x };
-            //float[] yA = { pos.y, pos.y + area.y };
-            //float[] yB = { posD.y, posD.y + areaD.y };
+            var oldAsset = GetAssetDiagonalPoint(posD, areaD);
+            var newAsset = GetAssetDiagonalPoint(pos, area);
 
-            //if (xA.Max() < xB.Min() || yA.Max() < yB.Min() || yA.Min() > yB.Max()) {
-            //    continue;
-            //} else if (xA.Max() > xB.Min() && xA.Min() < xB.Min()) {
-            //    return true;
-            //} else {
-            //    return true;
-            //}
-
-            var a = new Vector2(pos.x, pos.z);
-            var a1 = new Vector2(pos.x + area.x, pos.z + area.y);
-            var b = new Vector2(posD.x, posD.z);
-            var b1 = new Vector2(posD.x + areaD.x, posD.z + areaD.y);
-
-            if (a.y < b1.y || a1.y > b.y || a1.x < b.x || a.x > b1.x) {
-                return true;
+            if (oldAsset[1].z < newAsset[0].z || oldAsset[0].z > newAsset[1].z || oldAsset[1].x < newAsset[0].x || oldAsset[0].x > newAsset[1].x) {
+                continue;
             }
+            return true;
         }
         return false;
+    }
+
+    /// <summary>
+    ///  This method returns coordinats of low left and top right corners of area.
+    /// </summary>
+    private Vector3[] GetAssetDiagonalPoint(Vector3 position, Vector2 area) {
+
+        Vector3 pointLowLeft = new Vector3(position.x - area.x / 2, 0, position.z - area.y / 2); 
+        Vector3 pointTopRight = new Vector3(position.x + area.x / 2, 0, position.z + area.y / 2);
+
+        return new Vector3[] { pointLowLeft, pointTopRight };
     }
 
     float ZoneChances(CellTag zone) {
@@ -449,10 +425,7 @@ public class ProceduralRoom : MonoBehaviour {
 
     private void RemoveArea(Vector3 pos, Vector2 area, Quaternion rot) {
 
-        float iniX = 0;
-        float endX = 0;
-        float iniY = 0;
-        float endY = 0;
+        float iniX = 0, endX = 0, iniY = 0, endY = 0;
 
         if (area.x > 1 || area.y > 1) {
             switch (rot.eulerAngles.y) {
@@ -485,6 +458,7 @@ public class ProceduralRoom : MonoBehaviour {
                     }
                 }
             }
+
         } else {
             var cell = cells.FirstOrDefault(x => x.position.x == pos.x && x.position.z == pos.z);
             if (cell != null) {

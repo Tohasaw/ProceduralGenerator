@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7260943443178378602}
   - component: {fileID: 4489214604968676103}
+  - component: {fileID: 373655585986817136}
   m_Layer: 0
   m_Name: TableLarge
   m_TagString: Untagged
@@ -46,6 +47,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   decorationAssetSO: {fileID: 0}
+--- !u!65 &373655585986817136
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8201851767055911271}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3, y: 1, z: 1.7}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &7740602872764376025
 PrefabInstance:
   m_ObjectHideFlags: 0

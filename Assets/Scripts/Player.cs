@@ -119,7 +119,7 @@ public class Player : MonoBehaviour
 
     private bool CanMove(Vector3 moveDir) {
         float moveDistance = moveSpeed * Time.deltaTime;
-        float playerRadius = .7f;
+        float playerRadius = .5f;
         float playerHeight = 2f;
 
         return !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDir, moveDistance);
